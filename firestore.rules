@@ -1,0 +1,29 @@
+rules_version = '2';
+
+// RRT Volunteer Hub — only named coordinators can read or change anything.
+// 1. Replace the example addresses with each coordinator's Google account email (lower case).
+// 2. Paste this whole file into Firebase console > Firestore Database > Rules, then press Publish.
+// To add or remove a coordinator later, edit the list and publish again.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isCoordinator() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in [
+          'coordinator.one@gmail.com',
+          'coordinator.two@gmail.com'
+        ];
+    }
+
+    match /rrt_hub/{docId} {
+      allow read, write: if isCoordinator();
+    }
+
+    // Everything else is closed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

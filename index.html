@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>RRT Volunteer Hub</title>
+<style>
+:root{
+  --bg:#f4f6f5; --card:#ffffff; --ink:#1e2a2a; --muted:#6b7c7a;
+  --line:#e3e9e8; --primary:#2f7d72; --primary-d:#245f57; --primary-l:#e7f2f0;
+  --amber:#c98a00; --amber-l:#fbf1dc; --red:#c0392b; --red-l:#fbe9e7;
+  --green:#2e8b57; --green-l:#e6f4ec; --blue:#2f6fb0; --blue-l:#e8f0f8;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:14px}
+a{color:var(--primary)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 18px}
+header{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;box-shadow:var(--shadow)}
+.hbar{display:flex;align-items:center;gap:14px;padding:14px 18px;max-width:1080px;margin:0 auto;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:11px}
+.logo .badge{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;letter-spacing:.5px}
+.logo h1{font-size:18px;margin:0;font-weight:700}
+.logo p{margin:0;font-size:12px;opacity:.85}
+.htools{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.htools button{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);padding:7px 12px;border-radius:8px;font-size:13px;font-weight:600;transition:.15s}
+.htools button:hover{background:rgba(255,255,255,.28)}
+.sync{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:5px 10px;border-radius:20px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25)}
+.sync .dot{width:8px;height:8px;border-radius:50%;background:#ccc}
+.sync.local .dot{background:#e0c060}.sync.connecting .dot{background:#e0c060;animation:pulse 1s infinite}
+.sync.synced .dot{background:#7ce0a0}.sync.error .dot{background:#ff8a80}
+@keyframes pulse{50%{opacity:.35}}
+nav{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;box-shadow:var(--shadow)}
+.navinner{display:flex;gap:4px;max-width:1080px;margin:0 auto;padding:0 18px}
+.navinner button{background:none;border:none;padding:14px 16px;font-size:14px;font-weight:600;color:var(--muted);border-bottom:3px solid transparent}
+.navinner button.active{color:var(--primary);border-bottom-color:var(--primary)}
+.navinner button:hover{color:var(--ink)}
+main{padding:22px 0 60px}
+.grid{display:grid;gap:14px}
+.stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 16px;box-shadow:var(--shadow)}
+.stat .n{font-size:26px;font-weight:800;color:var(--primary)}
+.stat .l{font-size:12.5px;color:var(--muted);margin-top:2px}
+.section-title{display:flex;align-items:center;gap:10px;margin:26px 0 12px}
+.section-title h2{font-size:16px;margin:0}
+.section-title .sub{font-size:12.5px;color:var(--muted)}
+.spacer{flex:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.evcard{padding:15px 16px;display:flex;gap:14px;align-items:center;cursor:pointer;transition:.12s}
+.evcard:hover{border-color:var(--primary);transform:translateY(-1px)}
+.evcard .main{flex:1;min-width:0}
+.evcard h3{margin:0 0 3px;font-size:15.5px}
+.evcard .meta{font-size:12.5px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+.evcard .prog{width:190px;flex-shrink:0}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.3px}
+.st-upcoming{background:var(--blue-l);color:var(--blue)}
+.st-active{background:var(--amber-l);color:var(--amber)}
+.st-complete{background:var(--green-l);color:var(--green)}
+.st-archived{background:#eee;color:#888}
+.bar{height:8px;background:var(--line);border-radius:20px;overflow:hidden;margin-top:6px}
+.bar > i{display:block;height:100%;background:var(--green);border-radius:20px}
+.bar.asked > i{background:var(--blue)}
+.progline{font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+.btn{background:var(--primary);color:#fff;border:none;padding:9px 15px;border-radius:8px;font-size:14px;font-weight:600}
+.btn:hover{background:var(--primary-d)}
+.btn.sm{padding:6px 11px;font-size:13px}
+.btn.ghost{background:var(--card);color:var(--primary);border:1px solid var(--primary)}
+.btn.ghost:hover{background:var(--primary-l)}
+.btn.grey{background:#eef1f0;color:var(--ink);border:1px solid var(--line)}
+.btn.grey:hover{background:#e3e8e7}
+.btn.danger{background:var(--card);color:var(--red);border:1px solid var(--red)}
+.btn.danger:hover{background:var(--red-l)}
+.backbtn{background:none;border:none;color:var(--primary);font-weight:600;font-size:14px;padding:0;margin-bottom:12px;display:inline-flex;gap:6px;align-items:center}
+.detail-head{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:6px}
+.field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:13px}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px}
+.field input,.field select,.field textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fbfcfc}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--primary);background:#fff}
+.field textarea{resize:vertical;min-height:52px}
+.vtoolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0 12px}
+.search{flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--line);border-radius:8px}
+table.vt{width:100%;border-collapse:collapse;background:var(--card)}
+table.vt th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);padding:9px 12px;border-bottom:2px solid var(--line);position:sticky;top:52px;background:var(--card);z-index:5}
+table.vt td{padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.vt tr:hover td{background:#fafcfb}
+table.vt .fam td{font-weight:700;color:var(--primary-d);font-size:12.5px;text-transform:uppercase;letter-spacing:.4px;padding:6px 12px;background:var(--primary-l)}
+.chk{width:20px;height:20px;accent-color:var(--primary);cursor:pointer}
+.col-c{text-align:center;width:110px}
+.namenote input{width:100%;border:1px solid transparent;background:transparent;padding:4px 6px;border-radius:6px;font-size:13px}
+.namenote input:hover{border-color:var(--line)}
+.namenote input:focus{outline:none;border-color:var(--primary);background:#fff}
+.vname{font-weight:600}
+.rowdone{color:var(--green);font-weight:700;font-size:12px}
+table.rt{width:100%;border-collapse:collapse;background:var(--card)}
+table.rt th{text-align:left;font-size:11.5px;text-transform:uppercase;color:var(--muted);padding:10px 12px;border-bottom:2px solid var(--line)}
+table.rt td{padding:8px 12px;border-bottom:1px solid var(--line)}
+table.rt input{border:1px solid transparent;background:transparent;padding:5px 7px;border-radius:6px;width:100%}
+table.rt input:hover{border-color:var(--line)}
+table.rt input:focus{outline:none;border-color:var(--primary);background:#fff}
+.empty{text-align:center;color:var(--muted);padding:40px 20px}
+.hint{font-size:12.5px;color:var(--muted);background:var(--primary-l);border-radius:8px;padding:9px 12px;margin:0 0 14px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;z-index:100;box-shadow:0 6px 24px rgba(0,0,0,.25);max-width:90vw}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.rowbtns{display:flex;gap:6px}
+.iconbtn{background:none;border:1px solid var(--line);border-radius:7px;padding:4px 9px;font-size:12.5px;color:var(--muted)}
+.iconbtn:hover{border-color:var(--red);color:var(--red)}
+.overlay{position:fixed;inset:0;background:rgba(20,30,30,.5);display:none;align-items:flex-start;justify-content:center;z-index:200;padding:30px 16px;overflow:auto}
+.overlay.show{display:flex}
+.modal{background:var(--card);border-radius:14px;max-width:600px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal .mhead{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center}
+.modal .mhead h2{margin:0;font-size:18px}
+.modal .mbody{padding:18px 22px}
+.modal .mfoot{padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.modal textarea{width:100%;min-height:150px;border:1px solid var(--line);border-radius:8px;padding:10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px}
+.modal input.coll{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;margin-top:4px}
+.closex{margin-left:auto;background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer;line-height:1}
+.statusrow{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:8px;font-size:13.5px;margin-bottom:14px}
+.statusrow.ok{background:var(--green-l);color:var(--green)}
+.statusrow.off{background:var(--amber-l);color:#8a6100}
+.statusrow.err{background:var(--red-l);color:var(--red)}
+ol.steps{margin:0 0 6px;padding-left:20px}
+ol.steps li{margin-bottom:5px;font-size:13.5px}
+code.k{background:#eef1f0;border-radius:4px;padding:1px 5px;font-size:12px}
+.gate{position:fixed;inset:0;background:var(--bg);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px}
+.gate[hidden]{display:none}
+.gatecard{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:28px 24px;max-width:400px;width:100%;text-align:center}
+@media(max-width:640px){
+  .evcard{flex-direction:column;align-items:stretch}
+  .evcard .prog{width:100%}
+  table.vt th{top:0}
+  .htools button{padding:6px 9px;font-size:12px}
+}
+@media print{
+  header,nav,.htools,.vtoolbar,.backbtn,.no-print,.overlay{display:none!important}
+  body{background:#fff}
+  .card{box-shadow:none;border:1px solid #ccc}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbar">
+    <div class="logo">
+      <div class="badge">RRT</div>
+      <div><h1>Volunteer Hub</h1><p>Recruitment &amp; event tracker</p></div>
+    </div>
+    <div class="htools">
+      <span class="sync local" id="syncBadge" onclick="openSetup()" title="Sync status — click to set up"><span class="dot"></span><span id="syncText">Local only</span></span>
+      <button onclick="openSetup()">☁ Sync</button>
+      <button onclick="doBackup()">⬇ Backup</button>
+      <button onclick="document.getElementById('restoreFile').click()">⬆ Restore</button>
+      <input type="file" id="restoreFile" accept="application/json" style="display:none" onchange="doRestore(this)">
+      <span id="whoami" style="font-size:12px;opacity:.9"></span>
+      <button id="signOutBtn" onclick="signOut()" hidden>Sign out</button>
+    </div>
+  </div>
+</header>
+<nav>
+  <div class="navinner">
+    <button id="tab-overview" class="active" onclick="go('overview')">Overview</button>
+    <button id="tab-events" onclick="go('events')">Events</button>
+    <button id="tab-roster" onclick="go('roster')">Volunteers</button>
+  </div>
+</nav>
+<main><div class="wrap" id="view"></div></main>
+<div class="toast" id="toast"></div>
+
+<!-- Sign-in gate -->
+<div class="gate" id="gate" hidden>
+  <div class="gatecard">
+    <div class="logo" style="justify-content:center;color:var(--ink)"><div class="badge" style="background:var(--primary);color:#fff">RRT</div><div style="text-align:left"><h1 style="font-size:18px;margin:0">Volunteer Hub</h1><p style="margin:0;font-size:12px;color:var(--muted)">Coordinators only</p></div></div>
+    <p id="gateMsg" style="margin:18px 0 16px;color:var(--muted);font-size:14px">Sign in with the Google account your coordinator access was set up for.</p>
+    <button class="btn" id="gateBtn" onclick="doSignIn()">Sign in with Google</button>
+    <button class="btn grey" id="gateOut" onclick="signOut()" hidden style="margin-left:6px">Use a different account</button>
+  </div>
+</div>
+
+<!-- Sync setup modal -->
+<div class="overlay" id="setupOverlay">
+  <div class="modal">
+    <div class="mhead"><h2>Cloud sync setup</h2><button class="closex" onclick="closeSetup()">×</button></div>
+    <div class="mbody" id="setupBody"></div>
+    <div class="mfoot" id="setupFoot"></div>
+  </div>
+</div>
+
+<!-- Firebase (compat build via classic scripts — works from a local file on phones) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+// Starting structure only. Volunteer names and events live in Firebase, never in this file.
+const SEED = {"roster": [], "supportTypes": ["Reactive", "Coffee and Cakes", "Full Meal", "Other"], "eventTypes": ["PAW", "FCA", "Ex Salvus", "Martha Trust", "Reactive", "Other"], "events": []};
+const LS_KEY='rrt_hub_v2', CFG_KEY='rrt_fb_cfg';
+// Baked-in config — every device that opens this file connects automatically:
+const EMBEDDED_CONFIG={
+  firebase:{
+    apiKey:"AIzaSyCvr4hO6ayzBqKqlt2uflzFN7kcFcpl9Mg",
+    authDomain:"rrt-volunteer-hub.firebaseapp.com",
+    projectId:"rrt-volunteer-hub",
+    storageBucket:"rrt-volunteer-hub.firebasestorage.app",
+    messagingSenderId:"51004372086",
+    appId:"1:51004372086:web:ae32a30c920979b5261b57"
+  },
+  collection:"rrt_hub"
+};
+
+let db, current='overview', currentEvent=null, vfilter='', evStatusFilter='all';
+let cloud={on:false}, lastCloudEventIds=new Set(), seeded=false, firstSnap=false;
+let editingText=false, pendingRender=false, cloudWatchdog=null, lastErr='';
+function explainErr(code){
+  code=(code||'').toLowerCase();
+  if(code.includes('unauthorized-domain'))return 'This web address isn’t on Firebase’s list of authorised domains yet (README, Firebase step 2).';
+  if(code.includes('operation-not-allowed')||code.includes('admin-restricted')||code.includes('configuration-not-found'))return 'Google sign-in isn’t switched on in Firebase yet (README, Firebase step 1).';
+  if(code.includes('permission-denied')||code.includes('insufficient'))return 'This account isn’t on the coordinator list in the Firestore rules (README, Firebase step 3).';
+  if(code.includes('network-request-failed'))return 'No internet connection. Sign-in needs a connection the first time.';
+  if(code.includes('library'))return 'Couldn’t load the sync engine — this device needs an internet connection when opening the hub. If you’re online and it still fails, reload the page.';
+  if(code.includes('unavailable')||code.includes('failed to fetch')||code.includes('network')||code.includes('offline')||code.includes('module')||code.includes('timeout'))return 'Couldn’t reach the database — check the internet connection, and that Firestore has actually been created (guide Step 3).';
+  if(code.includes('api-key')||code.includes('invalid-api-key'))return 'The API key looks wrong — the config may be incomplete.';
+  if(code.includes('billing')||code.includes('project'))return 'The Firebase project can’t be reached — check the project still exists.';
+  return 'Check Google sign-in is on, this site is an authorised domain, and the rules are published (README, Firebase steps), then reload.';
+}
+
+/* ---------- config ---------- */
+function getConfig(){
+  if(EMBEDDED_CONFIG)return EMBEDDED_CONFIG;
+  try{const c=localStorage.getItem(CFG_KEY);if(c)return JSON.parse(c);}catch(e){}
+  return null;
+}
+function parsePastedConfig(txt){
+  txt=(txt||'').trim();if(!txt)throw new Error('empty');
+  try{return JSON.parse(txt);}catch(e){}
+  const m=txt.match(/\{[\s\S]*\}/);
+  if(!m)throw new Error('No { … } object found in the pasted text.');
+  const obj=(new Function('return ('+m[0]+')'))();
+  if(!obj||!obj.apiKey||!obj.projectId)throw new Error('Missing apiKey / projectId — paste the whole firebaseConfig object.');
+  return obj;
+}
+
+/* ---------- local storage ---------- */
+function loadLocal(){
+  try{const raw=localStorage.getItem(LS_KEY);if(raw){db=JSON.parse(raw);normalize();return;}}catch(e){}
+  db=JSON.parse(JSON.stringify(SEED));normalize();saveLocal();
+}
+function normalize(){
+  if(!db.supportTypes)db.supportTypes=SEED.supportTypes;
+  if(!db.eventTypes)db.eventTypes=SEED.eventTypes;
+  if(!db.roster)db.roster=[];if(!db.events)db.events=[];
+}
+function saveLocal(){try{localStorage.setItem(LS_KEY,JSON.stringify(db));}catch(e){}}
+
+/* ---------- badge ---------- */
+function setBadge(state,text){
+  const b=document.getElementById('syncBadge');b.className='sync '+state;
+  document.getElementById('syncText').textContent=text||({local:'Local only',connecting:'Connecting…',synced:'Synced',error:'Sync error'}[state]||state);
+}
+
+/* ---------- misc helpers ---------- */
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);}
+function uid(p){return p+'_'+Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-3);}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function countAsked(e){return db.roster.reduce((n,p)=>n+((e.participants[p.id]&&e.participants[p.id].asked)?1:0),0);}
+function countAgreed(e){return db.roster.reduce((n,p)=>n+((e.participants[p.id]&&e.participants[p.id].agreed)?1:0),0);}
+function ensureParts(e){db.roster.forEach(p=>{if(!e.participants[p.id])e.participants[p.id]={asked:false,agreed:false,note:''};});}
+function supportLabel(e){return e.supportType==='Other'?(e.supportTypeOther?('Other – '+e.supportTypeOther):'Other'):(e.supportType||'—');}
+function statusClass(s){return 'st-'+(s||'upcoming');}
+function statusLabel(s){return {upcoming:'Upcoming',active:'Active',complete:'Complete',archived:'Archived'}[s]||'Upcoming';}
+const STATUS_ORDER={active:0,upcoming:1,complete:2,archived:3};
+
+
+/* ---------- sign-in (Google, coordinators only) ---------- */
+let signInResolve=null;
+function waitForUser(auth){return new Promise(res=>{const un=auth.onAuthStateChanged(u=>{un();res(u);});});}
+function showGate(msg,wrongAccount){const g=document.getElementById('gate');document.getElementById('gateMsg').textContent=msg;document.getElementById('gateBtn').hidden=!!wrongAccount;document.getElementById('gateOut').hidden=!wrongAccount;g.hidden=false;}
+function hideGate(){document.getElementById('gate').hidden=true;}
+function showWho(u){const w=document.getElementById('whoami');if(w)w.textContent=u&&u.email?u.email:'';const b=document.getElementById('signOutBtn');if(b)b.hidden=!u;}
+async function doSignIn(){
+  const auth=firebase.auth();const p=new firebase.auth.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});
+  try{const r=await auth.signInWithPopup(p);if(signInResolve){signInResolve(r.user);signInResolve=null;}}
+  catch(e){
+    const c=(e&&e.code)||'';
+    if(c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment'){try{await auth.signInWithRedirect(p);}catch(e2){showGate(explainErr(e2.code||e2.message),false);}}
+    else if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request'){/* user closed the window: stay on the sign-in screen */}
+    else showGate(explainErr(c||e.message),false);
+  }
+}
+async function signOut(){try{await firebase.auth().signOut();}catch(e){}try{localStorage.removeItem(LS_KEY);}catch(e){}location.reload();}
+
+/* ---------- cloud ---------- */
+async function initCloud(cfg){
+  setBadge('connecting');
+  loadLocal();render();
+  clearTimeout(cloudWatchdog);
+  cloudWatchdog=setTimeout(()=>{if(!firstSnap){if(!lastErr)lastErr='timeout';setBadge('error','Sync error');toast('Still not connected. '+explainErr(lastErr));}},14000);
+  try{
+    if(typeof firebase==='undefined'||!firebase.initializeApp){throw {code:'library-not-loaded'};}
+    const firebaseConfig=cfg.firebase||cfg;
+    const coll=cfg.collection||firebaseConfig.collection||'rrt_hub';
+    if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(firebaseConfig);
+    const auth=firebase.auth();
+    let user=await waitForUser(auth);
+    if(!user){
+      clearTimeout(cloudWatchdog);setBadge('local','Signed out');
+      showGate('Sign in with the Google account your coordinator access was set up for.',false);
+      user=await new Promise(res=>{signInResolve=res;});
+      hideGate();setBadge('connecting');
+      cloudWatchdog=setTimeout(()=>{if(!firstSnap){if(!lastErr)lastErr='timeout';setBadge('error','Sync error');toast('Still not connected. '+explainErr(lastErr));}},14000);
+    }
+    showWho(user);
+    const fs=firebase.firestore();
+    cloud={on:true,fs,coll};
+    subscribe();
+  }catch(e){
+    console.error('Cloud init failed',e);
+    cloud={on:false};
+    lastErr=(e&&(e.code||e.message))||String(e);
+    setBadge('error','Sync error');
+    toast('Not connected: '+explainErr(lastErr));
+  }
+}
+function subscribe(){
+  const {fs,coll}=cloud;
+  fs.collection(coll).onSnapshot(snap=>{
+    firstSnap=true;clearTimeout(cloudWatchdog);
+    if(snap.metadata.hasPendingWrites){setBadge('synced');return;} // our own write echoing back
+    const events=[];let settings=null;const ids=new Set();
+    snap.forEach(d=>{if(d.id==='__settings')settings=d.data();else{events.push(d.data());ids.add(d.id);}});
+    if(snap.empty && !seeded){ // first device: push local/seed data up
+      seeded=true;pushFullReplace();setBadge('synced');return;
+    }
+    seeded=true;lastCloudEventIds=ids;
+    if(settings){db.roster=settings.roster||db.roster;db.supportTypes=settings.supportTypes||db.supportTypes;db.eventTypes=settings.eventTypes||db.eventTypes;}
+    db.events=events;
+    saveLocal();
+    setBadge('synced');
+    renderSafe();
+  },err=>{console.error(err);lastErr=(err.code||err.message||String(err));setBadge('error','Sync error');
+    if(String(lastErr).toLowerCase().includes('permission')){const u=firebase.auth().currentUser;try{localStorage.removeItem(LS_KEY);}catch(e){}db=clone(SEED);normalize();render();showGate((u&&u.email?u.email+' is':'This account is')+' not on the coordinator list. Ask the hub owner to add it, or sign in with a different account.',true);return;}
+    if(document.getElementById('setupOverlay').classList.contains('show'))renderSetup();});
+}
+function pushEvent(e){if(cloud.on)cloud.fs.collection(cloud.coll).doc(e.id).set(clone(e)).catch(err=>console.error(err));}
+function pushSettings(){if(cloud.on)cloud.fs.collection(cloud.coll).doc('__settings').set({roster:clone(db.roster),supportTypes:db.supportTypes,eventTypes:db.eventTypes}).catch(err=>console.error(err));}
+function pushAllEvents(){if(cloud.on)db.events.forEach(pushEvent);}
+function removeEventCloud(id){if(cloud.on)cloud.fs.collection(cloud.coll).doc(id).delete().catch(err=>console.error(err));}
+function pushFullReplace(){
+  if(!cloud.on)return;
+  const newIds=new Set(db.events.map(e=>e.id));
+  lastCloudEventIds.forEach(id=>{if(!newIds.has(id))removeEventCloud(id);});
+  pushSettings();pushAllEvents();
+  lastCloudEventIds=newIds;
+}
+/* commit = local cache + targeted cloud push */
+function commitEvent(e){saveLocal();pushEvent(e);}
+function commitSettingsAndEvents(){saveLocal();pushSettings();pushAllEvents();}
+
+/* ---------- render-safety while typing ---------- */
+function isTextField(el){if(!el)return false;const t=el.tagName;if(t==='TEXTAREA')return true;if(t==='INPUT'){const ty=(el.type||'text');return ['text','number','datetime-local','search','date','time'].includes(ty);}return false;}
+document.addEventListener('focusin',e=>{if(isTextField(e.target))editingText=true;});
+document.addEventListener('focusout',e=>{if(isTextField(e.target)){editingText=false;if(pendingRender){pendingRender=false;render();}}});
+function renderSafe(){if(editingText){pendingRender=true;}else render();}
+
+/* ---------- navigation ---------- */
+function go(v){current=v;currentEvent=null;['overview','events','roster'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('active',t===v));render();window.scrollTo(0,0);}
+function openEvent(id){currentEvent=id;current='event';vfilter='';render();window.scrollTo(0,0);}
+
+/* ---------- render root ---------- */
+function render(){
+  const v=document.getElementById('view');
+  if(current==='overview')v.innerHTML=renderOverview();
+  else if(current==='events')v.innerHTML=renderEvents();
+  else if(current==='roster')v.innerHTML=renderRoster();
+  else if(current==='event')v.innerHTML=renderEventDetail();
+}
+function renderOverview(){
+  const evs=db.events;
+  const upcoming=evs.filter(e=>e.status==='upcoming'||e.status==='active');
+  const totalAgreed=evs.reduce((n,e)=>n+countAgreed(e),0);
+  let h=`<div class="grid stats">
+    <div class="stat"><div class="n">${db.roster.length}</div><div class="l">Volunteers on roster</div></div>
+    <div class="stat"><div class="n">${evs.length}</div><div class="l">Events total</div></div>
+    <div class="stat"><div class="n">${upcoming.length}</div><div class="l">Upcoming / active</div></div>
+    <div class="stat"><div class="n">${totalAgreed}</div><div class="l">Total confirmed slots</div></div>
+  </div>`;
+  h+=`<div class="section-title"><h2>Upcoming &amp; active events</h2><div class="spacer"></div><button class="btn sm" onclick="addEvent()">+ New event</button></div>`;
+  const sorted=[...upcoming].sort((a,b)=>(a.startTime||'z').localeCompare(b.startTime||'z'));
+  h+= sorted.length?`<div class="grid">`+sorted.map(evCardHTML).join('')+`</div>`:`<div class="card empty">No upcoming events. Click “New event” to add one.</div>`;
+  const done=evs.filter(e=>e.status==='complete'||e.status==='archived').sort((a,b)=>(b.startTime||'').localeCompare(a.startTime||''));
+  if(done.length){h+=`<div class="section-title"><h2>Past events</h2><div class="sub">${done.length}</div></div><div class="grid">`+done.map(evCardHTML).join('')+`</div>`;}
+  return h;
+}
+function evCardHTML(e){
+  const asked=countAsked(e),agreed=countAgreed(e);
+  const req=Number(e.volunteersRequired)||0;const denom=req||asked||1;
+  const pctA=Math.min(100,Math.round(agreed/denom*100));
+  const pctK=Math.min(100,Math.round(asked/(db.roster.length||1)*100));
+  const when=fmtWhen(e);
+  return `<div class="card evcard" onclick="openEvent('${e.id}')">
+    <div class="main"><h3>${esc(e.name)} <span class="pill ${statusClass(e.status)}">${statusLabel(e.status)}</span></h3>
+      <div class="meta">${e.eventType?`<span>🏷 ${esc(e.eventType)}</span>`:''}<span>🤝 ${esc(supportLabel(e))}</span>${when?`<span>🗓 ${esc(when)}</span>`:''}${e.peopleServed?`<span>🍽 ${esc(String(e.peopleServed))} served</span>`:''}</div></div>
+    <div class="prog">
+      <div class="progline"><span>Confirmed ${agreed}${req?(' / '+req+' needed'):''}</span><span>${pctA}%</span></div>
+      <div class="bar"><i style="width:${pctA}%"></i></div>
+      <div class="progline" style="margin-top:6px"><span>Reached out ${asked}</span><span>${pctK}%</span></div>
+      <div class="bar asked"><i style="width:${pctK}%"></i></div>
+    </div></div>`;
+}
+function fmtWhen(e){
+  if(!e.startTime)return '';
+  try{const d=new Date(e.startTime);let s=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    if(e.startTime.includes('T')&&!e.startTime.endsWith('T00:00'))s+=' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    return s;}catch(_){return e.startTime;}
+}
+function renderEvents(){
+  let h=`<div class="section-title"><h2>All events</h2><div class="spacer"></div><button class="btn sm" onclick="addEvent()">+ New event</button></div>`;
+  const filters=['all','upcoming','active','complete','archived'];
+  h+=`<div class="vtoolbar">`+filters.map(f=>`<button class="btn sm ${evStatusFilter===f?'':'grey'}" onclick="setEvFilter('${f}')">${f==='all'?'All':statusLabel(f)}</button>`).join('')+`</div>`;
+  let evs=[...db.events];
+  if(evStatusFilter!=='all')evs=evs.filter(e=>(e.status||'upcoming')===evStatusFilter);
+  evs.sort((a,b)=>(STATUS_ORDER[a.status||'upcoming']-STATUS_ORDER[b.status||'upcoming'])||((a.startTime||'z').localeCompare(b.startTime||'z')));
+  h+= evs.length?`<div class="grid">`+evs.map(evCardHTML).join('')+`</div>`:`<div class="card empty">No events in this view.</div>`;
+  return h;
+}
+function setEvFilter(f){evStatusFilter=f;render();}
+function renderEventDetail(){
+  const e=db.events.find(x=>x.id===currentEvent);
+  if(!e)return `<button class="backbtn" onclick="go('events')">← All events</button><div class="card empty">This event is no longer available (it may have been removed on another device).</div>`;
+  ensureParts(e);
+  const asked=countAsked(e),agreed=countAgreed(e),req=Number(e.volunteersRequired)||0;
+  const stillNeed=req?Math.max(0,req-agreed):0;
+  const supOpts=db.supportTypes.map(s=>`<option ${e.supportType===s?'selected':''}>${esc(s)}</option>`).join('');
+  const evtList=db.eventTypes.map(t=>`<option value="${esc(t)}">`).join('');
+  let h=`<div style="display:flex;align-items:center"><button class="backbtn" onclick="go('events')" style="margin-bottom:0">← All events</button><span class="spacer"></span><button class="iconbtn no-print" onclick="deleteEvent()">🗑 Delete event</button></div><div style="height:12px"></div>`;
+  h+=`<div class="card" style="padding:18px;margin-bottom:16px">
+    <div class="detail-head">
+      <div style="flex:1;min-width:240px"><input id="f_name" value="${esc(e.name)}" onchange="upd('name',this.value)" style="font-size:21px;font-weight:800;border:1px solid transparent;background:transparent;padding:4px 6px;border-radius:8px;width:100%"></div>
+      <div class="field" style="min-width:150px"><label>Status</label>
+        <select onchange="upd('status',this.value)">${['upcoming','active','complete','archived'].map(s=>`<option value="${s}" ${(e.status||'upcoming')===s?'selected':''}>${statusLabel(s)}</option>`).join('')}</select></div>
+    </div>
+    <div class="field-grid" style="margin-top:8px">
+      <div class="field"><label>Event type</label><input list="evtypes" value="${esc(e.eventType)}" onchange="upd('eventType',this.value)" placeholder="e.g. PAW, FCA…"><datalist id="evtypes">${evtList}</datalist></div>
+      <div class="field"><label>RRT support type</label><select onchange="updSupport(this.value)">${supOpts}</select></div>
+      <div class="field" id="otherWrap" style="${e.supportType==='Other'?'':'display:none'}"><label>Other – describe</label><input value="${esc(e.supportTypeOther)}" onchange="upd('supportTypeOther',this.value)" placeholder="Describe support"></div>
+      <div class="field"><label>People being served</label><input type="text" value="${esc(String(e.peopleServed))}" onchange="upd('peopleServed',this.value)" placeholder="e.g. 120"></div>
+      <div class="field"><label>Volunteers required</label><input type="number" min="0" value="${esc(String(e.volunteersRequired))}" onchange="upd('volunteersRequired',this.value)"></div>
+      <div class="field"><label>Setup time</label><input type="text" value="${esc(e.setupTime)}" onchange="upd('setupTime',this.value)" placeholder="e.g. 08:00 or 1hr before"></div>
+      <div class="field"><label>Event start</label><input type="datetime-local" value="${esc(e.startTime)}" onchange="upd('startTime',this.value)"></div>
+      <div class="field"><label>Event finish</label><input type="datetime-local" value="${esc(e.finishTime)}" onchange="upd('finishTime',this.value)"></div>
+    </div>
+    <div class="field" style="margin-top:13px"><label>Notes</label><textarea onchange="upd('notes',this.value)" placeholder="Location, contacts, special instructions…">${esc(e.notes)}</textarea></div>
+  </div>`;
+  h+=`<div class="grid stats" style="margin-bottom:14px">
+    <div class="stat"><div class="n">${asked}</div><div class="l">Reached out</div></div>
+    <div class="stat"><div class="n">${agreed}</div><div class="l">Agreed</div></div>
+    <div class="stat"><div class="n">${req||'—'}</div><div class="l">Required</div></div>
+    <div class="stat"><div class="n" style="color:${stillNeed>0?'var(--amber)':'var(--green)'}">${req?(stillNeed>0?stillNeed:'✓'):'—'}</div><div class="l">${req?(stillNeed>0?'Still needed':'Target met'):'No target set'}</div></div>
+  </div>`;
+  h+=`<div class="section-title"><h2>Volunteers</h2><div class="sub">tick who you’ve reached out to and who’s agreed</div></div>`;
+  h+=`<div class="vtoolbar">
+      <input class="search" placeholder="Search name…" value="${esc(vfilter)}" oninput="vfilter=this.value;refreshTable()">
+      <button class="btn sm grey" onclick="bulkAsked('${e.id}')">Mark all reached out</button>
+      <button class="btn sm grey" onclick="bulkClear('${e.id}')">Clear all</button>
+      <button class="btn sm grey no-print" onclick="window.print()">🖨 Print</button></div>`;
+  h+=`<div class="card" style="overflow:hidden"><table class="vt"><thead><tr><th>Volunteer</th><th class="col-c">Reached out</th><th class="col-c">Agreed</th><th>Note / assignment</th></tr></thead><tbody id="vbody">${rowsHTML(e)}</tbody></table></div>`;
+  return h;
+}
+function rowsHTML(e){
+  const q=vfilter.trim().toLowerCase();let lastFam='',out='';
+  db.roster.forEach(p=>{
+    const full=(p.firstName+' '+p.surname).toLowerCase();
+    if(q&&full.indexOf(q)<0)return;
+    if(p.surname!==lastFam){lastFam=p.surname;out+=`<tr class="fam"><td colspan="4">${esc(p.surname)}</td></tr>`;}
+    const pt=e.participants[p.id]||{asked:false,agreed:false,note:''};
+    out+=`<tr>
+      <td class="vname">${esc(p.firstName)} ${pt.agreed?'<span class="rowdone">✓</span>':''}</td>
+      <td class="col-c"><input type="checkbox" class="chk" ${pt.asked?'checked':''} onchange="toggle('${e.id}','${p.id}','asked',this.checked)"></td>
+      <td class="col-c"><input type="checkbox" class="chk" ${pt.agreed?'checked':''} onchange="toggle('${e.id}','${p.id}','agreed',this.checked)"></td>
+      <td class="namenote"><input value="${esc(pt.note)}" placeholder="—" onchange="setNote('${e.id}','${p.id}',this.value)"></td></tr>`;
+  });
+  if(!out)out=`<tr><td colspan="4" class="empty">No matches.</td></tr>`;
+  return out;
+}
+function refreshTable(){const e=db.events.find(x=>x.id===currentEvent);if(e){const b=document.getElementById('vbody');if(b)b.innerHTML=rowsHTML(e);}}
+
+/* ---------- event mutations ---------- */
+function curE(){return db.events.find(x=>x.id===currentEvent);}
+function upd(k,v){const e=curE();if(!e)return;e[k]=v;commitEvent(e);if(k==='name'||k==='status')render();}
+function updSupport(v){const e=curE();e.supportType=v;commitEvent(e);document.getElementById('otherWrap').style.display=(v==='Other')?'':'none';}
+function toggle(eid,pid,field,val){const e=db.events.find(x=>x.id===eid);const pt=e.participants[pid];pt[field]=val;if(field==='agreed'&&val)pt.asked=true;if(field==='asked'&&!val)pt.agreed=false;commitEvent(e);refreshTable();updateDetailStats(e);}
+function setNote(eid,pid,v){const e=db.events.find(x=>x.id===eid);e.participants[pid].note=v;commitEvent(e);}
+function bulkAsked(eid){const e=db.events.find(x=>x.id===eid);db.roster.forEach(p=>{ensureParts(e);e.participants[p.id].asked=true;});commitEvent(e);refreshTable();updateDetailStats(e);toast('Marked everyone reached out');}
+function bulkClear(eid){if(!confirm('Clear all reached-out and agreed marks for this event?'))return;const e=db.events.find(x=>x.id===eid);db.roster.forEach(p=>{if(e.participants[p.id]){e.participants[p.id].asked=false;e.participants[p.id].agreed=false;}});commitEvent(e);refreshTable();updateDetailStats(e);}
+function updateDetailStats(e){
+  const asked=countAsked(e),agreed=countAgreed(e),req=Number(e.volunteersRequired)||0;
+  const stat=document.querySelectorAll('.grid.stats .stat .n');
+  if(stat.length>=4){stat[0].textContent=asked;stat[1].textContent=agreed;const need=req?Math.max(0,req-agreed):0;stat[3].textContent=req?(need>0?need:'✓'):'—';stat[3].style.color=need>0?'var(--amber)':'var(--green)';document.querySelectorAll('.grid.stats .stat .l')[3].textContent=req?(need>0?'Still needed':'Target met'):'No target set';}
+}
+function addEvent(){
+  const e={id:uid('ev'),name:'New event',eventType:'',supportType:'Reactive',supportTypeOther:'',startTime:'',finishTime:'',setupTime:'',volunteersRequired:'',peopleServed:'',status:'upcoming',notes:'',participants:{}};
+  db.roster.forEach(p=>e.participants[p.id]={asked:false,agreed:false,note:''});
+  db.events.push(e);lastCloudEventIds.add(e.id);commitEvent(e);openEvent(e.id);toast('Event added — fill in the details');
+}
+function deleteEvent(){const e=curE();if(!e)return;if(!confirm('Delete “'+e.name+'”? This removes it for everyone. This cannot be undone.'))return;db.events=db.events.filter(x=>x.id!==e.id);lastCloudEventIds.delete(e.id);saveLocal();removeEventCloud(e.id);go('events');toast('Event deleted');}
+
+/* ---------- roster ---------- */
+function renderRoster(){
+  let h=`<div class="section-title"><h2>Volunteers</h2><div class="sub">${db.roster.length} on the roster</div><div class="spacer"></div><button class="btn sm" onclick="addVol()">+ Add volunteer</button></div>`;
+  h+=`<p class="hint">Adding or removing a volunteer updates every event and syncs to all devices. “Events attended” counts events where they’ve agreed.</p>`;
+  h+=`<div class="card" style="overflow:hidden"><table class="rt"><thead><tr><th>First name</th><th>Surname</th><th style="width:130px">Events attended</th><th style="width:90px"></th></tr></thead><tbody>`;
+  db.roster.forEach(p=>{
+    const attended=db.events.reduce((n,e)=>n+((e.participants[p.id]&&e.participants[p.id].agreed)?1:0),0);
+    h+=`<tr><td><input value="${esc(p.firstName)}" onchange="editVol('${p.id}','firstName',this.value)"></td>
+      <td><input value="${esc(p.surname)}" onchange="editVol('${p.id}','surname',this.value)"></td>
+      <td style="text-align:center;font-weight:700;color:var(--primary)">${attended}</td>
+      <td><div class="rowbtns"><button class="iconbtn" onclick="delVol('${p.id}')">Remove</button></div></td></tr>`;
+  });
+  h+=`</tbody></table></div>`;return h;
+}
+function addVol(){
+  const fn=prompt('First name?');if(!fn)return;const sn=prompt('Surname?')||'';
+  const p={id:uid('v'),firstName:fn.trim(),surname:sn.trim()};
+  db.roster.push(p);db.roster.sort((a,b)=>a.surname.localeCompare(b.surname)||a.firstName.localeCompare(b.firstName));
+  db.events.forEach(e=>e.participants[p.id]={asked:false,agreed:false,note:''});
+  commitSettingsAndEvents();render();toast('Volunteer added');
+}
+function editVol(id,k,v){const p=db.roster.find(x=>x.id===id);if(p){p[k]=v;saveLocal();pushSettings();}}
+function delVol(id){const p=db.roster.find(x=>x.id===id);if(!p)return;if(!confirm('Remove '+p.firstName+' '+p.surname+' from the roster and all events?'))return;db.roster=db.roster.filter(x=>x.id!==id);db.events.forEach(e=>{delete e.participants[id];});commitSettingsAndEvents();render();toast('Volunteer removed');}
+
+/* ---------- backup / restore / reset ---------- */
+function doBackup(){
+  const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  const d=new Date();const stamp=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  a.download='RRT-hub-backup-'+stamp+'.json';a.click();URL.revokeObjectURL(a.href);toast('Backup downloaded');
+}
+function doRestore(input){
+  const f=input.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.roster||!d.events)throw 0;db=d;normalize();saveLocal();pushFullReplace();go('overview');toast(cloud.on?'Backup restored & synced':'Backup restored');}catch(e){alert('That file could not be read as an RRT hub backup.');}};
+  r.readAsText(f);input.value='';
+}
+
+/* ---------- setup modal ---------- */
+function openSetup(){renderSetup();document.getElementById('setupOverlay').classList.add('show');}
+function closeSetup(){document.getElementById('setupOverlay').classList.remove('show');}
+function renderSetup(){
+  const body=document.getElementById('setupBody'),foot=document.getElementById('setupFoot');
+  const cfg=getConfig();const connected=cloud.on;
+  let status='';
+  if(connected)status=`<div class="statusrow ok">● Connected and syncing in real time across devices.</div>`;
+  else if(cfg)status=`<div class="statusrow err">● Not connected yet.${lastErr?` <b>Reason: ${esc(lastErr)}</b>`:''}<br>${explainErr(lastErr)}</div>`;
+  else status=`<div class="statusrow off">● Not synced yet — this device is saving locally only.</div>`;
+  body.innerHTML=status+`
+    <p style="margin:2px 0 10px;font-size:13.5px;color:var(--muted)">Paste your Firebase web config below to connect this device. All devices using the same config share one live copy. Full instructions are in the README.</p>
+    <ol class="steps">
+      <li>Create a free Firebase project at <code class="k">console.firebase.google.com</code></li>
+      <li>Add a <b>Web app</b>, then copy its <code class="k">firebaseConfig</code></li>
+      <li>Enable <b>Firestore Database</b> and <b>Google</b> sign-in</li>
+      <li>Paste the whole config object here and press Connect</li>
+    </ol>
+    <label style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px">Firebase config</label>
+    <textarea id="cfgText" placeholder='{&#10;  "apiKey": "AIza…",&#10;  "authDomain": "your-app.firebaseapp.com",&#10;  "projectId": "your-app",&#10;  "appId": "1:…"&#10;}'>${cfg?esc(JSON.stringify(cfg.firebase||cfg,null,2)):''}</textarea>
+    <label style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-top:10px;display:block">Shared collection name (advanced — leave as is)</label>
+    <input class="coll" id="cfgColl" value="${esc(cfg&&cfg.collection||'rrt_hub')}">`;
+  foot.innerHTML=(cfg?`<button class="btn danger" onclick="disconnectSync()">Disconnect</button>`:'')+
+    `<button class="btn grey" onclick="closeSetup()">Cancel</button><button class="btn" onclick="connectSync()">${cfg?'Reconnect':'Connect'}</button>`;
+}
+function connectSync(){
+  try{
+    const obj=parsePastedConfig(document.getElementById('cfgText').value);
+    const coll=(document.getElementById('cfgColl').value||'rrt_hub').trim();
+    const saved={firebase:obj,collection:coll};
+    localStorage.setItem(CFG_KEY,JSON.stringify(saved));
+    toast('Config saved — connecting…');closeSetup();
+    setTimeout(()=>location.reload(),400);
+  }catch(e){alert('Could not read that config:\n\n'+e.message+'\n\nPaste the whole firebaseConfig object (the part in curly braces).');}
+}
+function disconnectSync(){if(!confirm('Disconnect this device from cloud sync? Your data stays saved locally. Other devices keep syncing.'))return;localStorage.removeItem(CFG_KEY);toast('Disconnected');closeSetup();setTimeout(()=>location.reload(),400);}
+
+/* ---------- init ---------- */
+(function(){
+  const cfg=getConfig();
+  if(cfg){initCloud(cfg);}
+  else{setBadge('local');loadLocal();render();}
+})();
+</script>
+</body>
+</html>
